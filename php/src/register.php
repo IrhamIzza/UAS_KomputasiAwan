@@ -1,48 +1,22 @@
 <?php
     include "config/controller.php";
-    session_start();
-    $lg            = new resto();
-    $table         = "tb_user";
-    $autokode      = $lg->autokode($table, "kd_user", "US");
-    $autokode2     = $lg->autokode("tb_pelanggan", "kd_pelanggan", "PG");
-    $autokodeOrder = $lg->autokode("tb_order", "kd_order", "TR");
-    $date          = date("Y-m-d");
-    if ($lg->sessionCheck() == "true") {
-    if (@$_SESSION['level'] == "Pelanggan") {
-    header("location:pagePelanggan.php");
-    }
-    }
-    if (isset($_POST['btnLogin'])) {
-        $username = $_POST['username'];
-        $password = $_POST['password'];
-        $kd_pelanggan = $autokode2;
-        $kd_user      = $autokode;
-        $nama_user    = $username;
-        $email        = "pelanggan@gmail.com";
-        $username2    = strtolower($username);
-        $level        = "Pelanggan";
-        $status       = "belum_beli";
-        $redirect     = "pagePelanggan.php";
-        if ($username == "" || $password == "") {
+    $rg       = new Resto();
+    $table    = "tb_user";
+    $autokode = $rg->autokode($table, "kd_user", "US");
+    $getLevel = $rg->select("tb_level");
+    if (isset($_POST['btnRegister'])) {
+        $kd_user   = $_POST['kd_user'];
+        $nama_user = $_POST['nama_user'];
+        $email     = $_POST['email'];
+        $username  = $_POST['username'];
+        $password  = $_POST['password'];
+        $confirm   = $_POST['confirm'];
+        $level     = $_POST['level'];
+        $redirect  = "loginMulti.php";
+        if ($nama_user == "" || $email == "" || $username == "" || $password == "" || $confirm == "" || $level == "") {
         $response = ['response' => 'negative', 'alert' => 'Lengkapi Field !!!'];
         } else {
-        $_SESSION['username'] = $_POST['username'];
-        $select               = $lg->selectWhere2("tb_meja", "no_meja", $password, "status", "active");
-        $select2              = $lg->selectWhere2("tb_meja", "no_meja", $password, "status", "non-active");
-            if ($select == 1) {
-                $response = ['response' => 'negative', 'alert' => 'No meja ini telah digunakan'];
-            } elseif ($select2 == 1) {
-                $response = $lg->register_pelanggan($kd_user, $nama_user, $email, $username2, $password, $level, $redirect);
-                $value    = "'$kd_pelanggan', '$username', '$password'";
-                $response = $lg->insert("tb_pelanggan", $value, $redirect);
-                $valueOrder = "'$autokodeOrder', '$password', null, '$nama_user', '$kd_user', '', '$status', '$date'";
-                $response   = $lg->insert("tb_order", $valueOrder, $redirect);
-                $status_meja = "active";
-                $valueMeja   = "user_kd='$kd_user', status='$status_meja'";
-                $response    = $lg->update("tb_meja", $valueMeja, "no_meja", $password, $redirect);
-            } elseif ($select == 0) {
-                $response = ['response' => 'negative', 'alert' => 'No meja tidak terdaftar, silahkan cek no meja kembali'];
-            }
+        $response = $rg->register($kd_user, $nama_user, $email, $username, $password, $confirm, $level, $redirect);
         }
     }
 ?>
@@ -56,7 +30,7 @@
         <meta name="author" content="Hau Nguyen">
         <meta name="keywords" content="au theme template">
         <!-- Title Page-->
-        <title>Halaman Login</title>
+        <title>Halaman Register</title>
         <!-- Fontfaces CSS-->
         <link href="css/font-face.css" rel="stylesheet" media="all">
         <link href="vendor/font-awesome-4.7/css/font-awesome.min.css" rel="stylesheet" media="all">
@@ -72,14 +46,13 @@
         <link href="vendor/slick/slick.css" rel="stylesheet" media="all">
         <link href="vendor/select2/select2.min.css" rel="stylesheet" media="all">
         <link href="vendor/perfect-scrollbar/perfect-scrollbar.css" rel="stylesheet" media="all">
+        <link rel="stylesheet" href="css/sweet-alert.css">
         <!-- Main CSS-->
         <link href="css/theme.css" rel="stylesheet" media="all">
-        <link rel="stylesheet" href="css/sweet-alert.css">
     </head>
     <body class="animsition" style="background: linear-gradient( rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5) ), url('images/bg3.jpg') no-repeat; background-size: cover;">
         <div class="page-wrapper">
             <div class="container">
-                <br><br><br>
                 <div class="login-wrap">
                     <div class="login-content">
                         <div class="login-logo">
@@ -90,29 +63,55 @@
                         <div class="login-form">
                             <form action="" method="post">
                                 <div class="form-group">
-                                    <label>Nama Lengkap</label>
-                                    <input autocomplete="off" value="<?=@$_POST['username']?>" class="au-input au-input--full" type="text" name="username" placeholder="Nama Lengkap Anda"">
+                                    <label>Kode User</label>
+                                    <input style="color: red; font-weight: bold;" class="au-input au-input--full" type="text" name="kd_user" readonly value="<?=$autokode;?>">
+                                </div>
+                                <div class="form-group">
+                                    <label>Nama</label>
+                                    <input class="au-input au-input--full" type="text" name="nama_user" value="<?php echo @$_POST['nama_user'] ?>" placeholder="Nama">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email</label>
+                                    <input class="au-input au-input--full" type="email" name="email" placeholder="Email" value="<?php echo @$_POST['email'] ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label>Username</label>
+                                    <input class="au-input au-input--full" type="text" name="username" placeholder="Username" value="<?php echo @$_POST['username'] ?>">
                                 </div>
                                 <div class="form-group">
                                     <label>Password</label>
-                                    <input class="au-input au-input--full" type="number" name="password" placeholder="Gunakan nomor meja sebagai password anda untuk login">
+                                    <input class="au-input au-input--full" type="password" name="password" placeholder="Password" value="<?php echo @$_POST['password'] ?>">
                                 </div>
-                                <div class="login-checkbox">
-                                    <label>
-                                        <input type="checkbox" name="remember">Remember Me
-                                    </label>
-                                    <label>
-                                        <a href="#">Forgotten Password?</a>
-                                    </label>
+                                <div class="form-group">
+                                    <label>Confirm Password</label>
+                                    <input class="au-input au-input--full" type="password" name="confirm" placeholder="Confirm Password" value="<?php echo @$_POST['confirm'] ?>">
+                                </div>
+                                <div class="form-group">
+                                    <label for="level" class="control-label mb-1">Level</label>
+                                    <select name="level" class="form-control mb-1">
+                                        <option value="">Pilih Level</option>
+                                        <?php foreach ($getLevel as $level) {?>
+                                        <option value="<?=$level['name']?>"><?=$level['name']?></option>
+                                        <?php }?>
+                                    </select>
                                 </div>
                                 <br>
-                                <button name="btnLogin" class="au-btn au-btn--block au-btn--green m-b-20" type="submit">sign in</button>
+                                <button name="btnRegister" class="au-btn au-btn--block au-btn--green m-b-20" type="submit">register</button>
                             </form>
+                            <div class="register-link">
+                                <p>
+                                    Already have account?
+                                    <a href="loginMulti.php">Sign In</a>
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+        <br>
+        <br>
+        <br>
         <!-- Jquery JS-->
         <script src="vendor/jquery-3.2.1.min.js"></script>
         <!-- Bootstrap JS-->
@@ -139,4 +138,3 @@
         <?php include "config/alert.php";?>
     </body>
 </html>
-<!-- end document-->

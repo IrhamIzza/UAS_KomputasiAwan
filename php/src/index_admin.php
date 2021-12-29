@@ -8,9 +8,9 @@
     $autokodeOrder = $lg->autokode("tb_order", "kd_order", "TR");
     $date          = date("Y-m-d");
     if ($lg->sessionCheck() == "true") {
-    if (@$_SESSION['level'] == "Pelanggan") {
-    header("location:pagePelanggan.php");
-    }
+    // if (@$_SESSION['level'] == "Admin") {
+    // header("location:pageAdmin.php");
+    // }
     }
     if (isset($_POST['btnLogin'])) {
         $username = $_POST['username'];
@@ -22,27 +22,16 @@
         $username2    = strtolower($username);
         $level        = "Pelanggan";
         $status       = "belum_beli";
-        $redirect     = "pagePelanggan.php";
+        $redirect     = "pageAdminOrder.php";
         if ($username == "" || $password == "") {
         $response = ['response' => 'negative', 'alert' => 'Lengkapi Field !!!'];
         } else {
         $_SESSION['username'] = $_POST['username'];
-        $select               = $lg->selectWhere2("tb_meja", "no_meja", $password, "status", "active");
-        $select2              = $lg->selectWhere2("tb_meja", "no_meja", $password, "status", "non-active");
-            if ($select == 1) {
-                $response = ['response' => 'negative', 'alert' => 'No meja ini telah digunakan'];
-            } elseif ($select2 == 1) {
-                $response = $lg->register_pelanggan($kd_user, $nama_user, $email, $username2, $password, $level, $redirect);
-                $value    = "'$kd_pelanggan', '$username', '$password'";
-                $response = $lg->insert("tb_pelanggan", $value, $redirect);
-                $valueOrder = "'$autokodeOrder', '$password', null, '$nama_user', '$kd_user', '', '$status', '$date'";
-                $response   = $lg->insert("tb_order", $valueOrder, $redirect);
-                $status_meja = "active";
-                $valueMeja   = "user_kd='$kd_user', status='$status_meja'";
-                $response    = $lg->update("tb_meja", $valueMeja, "no_meja", $password, $redirect);
-            } elseif ($select == 0) {
-                $response = ['response' => 'negative', 'alert' => 'No meja tidak terdaftar, silahkan cek no meja kembali'];
-            }
+        $response = $lg->register_pelanggan($kd_user, $nama_user, $email, $username2, $password, $level, $redirect);
+        $value    = "'$kd_pelanggan', '$username', '$password'";
+        $response = $lg->insert("tb_pelanggan", $value, $redirect);
+        $valueOrder = "'$autokodeOrder', '$password', null, '$nama_user', '$kd_user', '', '$status', '$date'";
+        $response   = $lg->insert("tb_order", $valueOrder, $redirect);
         }
     }
 ?>
@@ -95,7 +84,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Password</label>
-                                    <input class="au-input au-input--full" type="number" name="password" placeholder="Gunakan nomor meja sebagai password anda untuk login">
+                                    <input class="au-input au-input--full" type="number" name="password" value="0">
                                 </div>
                                 <div class="login-checkbox">
                                     <label>

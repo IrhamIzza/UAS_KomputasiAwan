@@ -1,51 +1,44 @@
 <?php
     include "config/controller.php";
     session_start();
-    $lg            = new resto();
-    $table         = "tb_user";
-    $autokode      = $lg->autokode($table, "kd_user", "US");
-    $autokode2     = $lg->autokode("tb_pelanggan", "kd_pelanggan", "PG");
-    $autokodeOrder = $lg->autokode("tb_order", "kd_order", "TR");
-    $date          = date("Y-m-d");
+    $lg = new Resto();
     if ($lg->sessionCheck() == "true") {
-    if (@$_SESSION['level'] == "Pelanggan") {
-    header("location:pagePelanggan.php");
+    if (@$_SESSION['level'] == "Admin") {
+    header("location:pageAdmin.php");
+    } else if (@$_SESSION['level'] == "Waiter") {
+    header("location:pageWaiter.php");
+    } else if (@$_SESSION['level'] == "Kasir") {
+    header("location:pageKasir.php");
+    } else if (@$_SESSION['level'] == "Owner") {
+    header("location:pageOwner.php");
+    } else if (@$_SESSION['level'] == "Koki") {
+    header("location:pageKoki.php");
     }
     }
     if (isset($_POST['btnLogin'])) {
-        $username = $_POST['username'];
-        $password = $_POST['password'];
-        $kd_pelanggan = $autokode2;
-        $kd_user      = $autokode;
-        $nama_user    = $username;
-        $email        = "pelanggan@gmail.com";
-        $username2    = strtolower($username);
-        $level        = "Pelanggan";
-        $status       = "belum_beli";
-        $redirect     = "pagePelanggan.php";
-        if ($username == "" || $password == "") {
-        $response = ['response' => 'negative', 'alert' => 'Lengkapi Field !!!'];
-        } else {
-        $_SESSION['username'] = $_POST['username'];
-        $select               = $lg->selectWhere2("tb_meja", "no_meja", $password, "status", "active");
-        $select2              = $lg->selectWhere2("tb_meja", "no_meja", $password, "status", "non-active");
-            if ($select == 1) {
-                $response = ['response' => 'negative', 'alert' => 'No meja ini telah digunakan'];
-            } elseif ($select2 == 1) {
-                $response = $lg->register_pelanggan($kd_user, $nama_user, $email, $username2, $password, $level, $redirect);
-                $value    = "'$kd_pelanggan', '$username', '$password'";
-                $response = $lg->insert("tb_pelanggan", $value, $redirect);
-                $valueOrder = "'$autokodeOrder', '$password', null, '$nama_user', '$kd_user', '', '$status', '$date'";
-                $response   = $lg->insert("tb_order", $valueOrder, $redirect);
-                $status_meja = "active";
-                $valueMeja   = "user_kd='$kd_user', status='$status_meja'";
-                $response    = $lg->update("tb_meja", $valueMeja, "no_meja", $password, $redirect);
-            } elseif ($select == 0) {
-                $response = ['response' => 'negative', 'alert' => 'No meja tidak terdaftar, silahkan cek no meja kembali'];
+        $username = strtolower($_POST['username']); // mengambil value username dan memaksa menjadi huruf kecil
+        $password = $_POST['password']; // mengambil value password
+        // menggunakan function login yang ada di controller
+        if ($response = $lg->login($username, $password)) {
+            if ($response['response'] == "positive") {
+                $_SESSION['username'] = $_POST['username'];
+                $_SESSION['level']    = $response['level'];
+                if ($response['level'] == "Admin") {
+                $response = $lg->redirect("pageAdmin.php");
+                } else if ($response['level'] == "Waiter") {
+                $response = $lg->redirect("pageWaiter.php");
+                } else if ($response['level'] == "Kasir") {
+                $response = $lg->redirect("pageKasir.php");
+                } else if ($response['level'] == "Owner") {
+                $response = $lg->redirect("pageOwner.php");
+                } else if ($response['level'] == "Koki") {
+                $response = $lg->redirect("pageKoki.php");
+                }
             }
         }
     }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -90,12 +83,12 @@
                         <div class="login-form">
                             <form action="" method="post">
                                 <div class="form-group">
-                                    <label>Nama Lengkap</label>
-                                    <input autocomplete="off" value="<?=@$_POST['username']?>" class="au-input au-input--full" type="text" name="username" placeholder="Nama Lengkap Anda"">
+                                    <label>Username</label>
+                                    <input required class="au-input au-input--full" type="text" name="username" placeholder="Username" value="<?= @$_POST['username'] ?>">
                                 </div>
                                 <div class="form-group">
                                     <label>Password</label>
-                                    <input class="au-input au-input--full" type="number" name="password" placeholder="Gunakan nomor meja sebagai password anda untuk login">
+                                    <input required class="au-input au-input--full" type="password" name="password" placeholder="Password" value="<?= @$_POST['password'] ?>">
                                 </div>
                                 <div class="login-checkbox">
                                     <label>
@@ -139,4 +132,3 @@
         <?php include "config/alert.php";?>
     </body>
 </html>
-<!-- end document-->

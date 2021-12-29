@@ -8,9 +8,9 @@
     $autokodeOrder = $lg->autokode("tb_order", "kd_order", "TR");
     $date          = date("Y-m-d");
     if ($lg->sessionCheck() == "true") {
-    if (@$_SESSION['level'] == "Pelanggan") {
-    header("location:pagePelanggan.php");
-    }
+    // if (@$_SESSION['level'] == "Admin") {
+    // header("location:pageAdmin.php");
+    // }
     }
     if (isset($_POST['btnLogin'])) {
         $username = $_POST['username'];
@@ -22,7 +22,7 @@
         $username2    = strtolower($username);
         $level        = "Pelanggan";
         $status       = "belum_beli";
-        $redirect     = "pagePelanggan.php";
+        $redirect     = "pageWaiterOrder.php";
         if ($username == "" || $password == "") {
         $response = ['response' => 'negative', 'alert' => 'Lengkapi Field !!!'];
         } else {
